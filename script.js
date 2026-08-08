@@ -1,275 +1,247 @@
-/* =========================================================
-   CONFIG — put your Cloudflare R2 public URLs here.
-   Each key needs a full https URL, e.g:
-   hero: "https://<your-r2-public-domain>/hero.jpg"
-   If a URL is left blank or fails to load, a soft placeholder
-   is shown instead so the site never looks broken.
-   ========================================================= */
-const IMAGES = {
-  hero:        "", // main birthday portrait
-  jasmine:     "", // her with jasmine flowers / temple
-  biryani:     "", // her with biryani
-  beach:       "", // her at the beach
-  kdrama:      "", // her + her favourite K-drama / actor edit
-  friendship:  "", // the two of you / devops meme photo
-  wish:        ""  // closing photo
-};
+/* Ruth's birthday website — vanilla JS
+ * Scene 0 = cake, 1 = hero, 2..7 = chapters, 8 = finale
+ *
+ * Cloudflare R2: set R2_BASE_URL below to your public bucket URL and upload
+ * images with the keys listed in each chapter's `r2Key`. Leave it empty ("")
+ * to use the local files in ./images/.
+ */
+const R2_BASE_URL = "";
 
-/* ---------- CHAPTER CONTENT ---------- */
-const CHAPTERS = [
+function img(localFile, r2Key) {
+  return R2_BASE_URL ? R2_BASE_URL.replace(/\/$/, "") + "/" + r2Key : "images/" + localFile;
+}
+
+const chapters = [
   {
-    key:"jasmine",
-    tag:'origin.set("Chennai, Tamil Nadu")',
-    title:"Malligai Girl 🌼",
-    icon:"🌼",
-    accent:"212,175,55",
-    message:"From the heart of Chennai, always with a string of jasmine in her hair — because some things are simply non-negotiable, mullapoo included. Faith, family, and a little bit of temple-gopuram grandeur in the way she carries herself."
+    eyebrow: "Chapter One",
+    title: "Malli Poo Girl",
+    message:
+      "Some people wear perfume. You wear jasmine — and somehow the whole room turns softer. Every time I see malli poo in Mumbai, my brain says one word: Junior.",
+    image: img("jasmine-bg.jpg", "ruth/jasmine.jpg"),
+    alt: "Jasmine flowers on pink silk",
   },
   {
-    key:"biryani",
-    tag:'craving.status = "always"',
-    title:"Certified Biryani Whisperer 🍚",
-    icon:"🍚",
-    accent:"255,138,101",
-    message:"She doesn't just eat biryani, she evaluates it — aroma, dum, masala balance, the works. Somewhere there's a mental leaderboard of every biryani place she's tried, and it's more rigorous than any sprint retro."
+    eyebrow: "Chapter Two",
+    title: "Chennai Ponnu",
+    message:
+      "Marina breeze, filter coffee, that unbeatable Chennai attitude. You carry your city with you everywhere — and you make everyone around you love it too.",
+    image: img("beach.jpg", "ruth/beach.jpg"),
+    alt: "Sunrise over the beach with gentle waves",
   },
   {
-    key:"beach",
-    tag:'happy_place == "Marina Beach"',
-    title:"Beach Baby 🌊",
-    icon:"🌊",
-    accent:"14,124,134",
-    message:"Give her sand under her feet and the Bay of Bengal in front of her and she's unstoppable. Sunset, sea breeze, and probably a plate of something fried nearby — that's her kind of peace."
+    eyebrow: "Chapter Three",
+    title: "Biryani > Everything",
+    message:
+      "There are two moods in this world: hungry, and biryani. Ask you anything at 1 PM and the answer is always the same. Today, extra raita and no sharing — birthday rules.",
+    image: img("biryani.jpg", "ruth/biryani.jpg"),
+    alt: "South Indian biryani served on a banana leaf",
   },
   {
-    key:"kdrama",
-    tag:'watchlist.length == "∞"',
-    title:"Certified K-Drama Enthusiast 🎬",
-    icon:"🎬",
-    accent:"214,51,108",
-    message:"Ask her about her current K-drama and clear your evening — she has opinions, ranked favourites, and yes, a favourite actor she will absolutely defend till the end of the episode."
+    eyebrow: "Chapter Four",
+    title: "K-Drama Queen",
+    message:
+      "Your Korean actors will never know you exist, and honestly that's their loss. Meanwhile you narrate every episode like it's breaking news — and I listen to all of it.",
+    image: img("kdrama.jpg", "ruth/kdrama.jpg"),
+    alt: "Cozy k-drama night with fairy lights and popcorn",
   },
   {
-    key:"friendship",
-    tag:"mumbai.connect(chennai) // status: online",
-    title:"Junior & Chief 🚀",
-    icon:"🚀",
-    accent:"168,23,83",
-    message:"Two DevOps engineers, one Mumbai, one Chennai, same org, different city, zero excuse not to be this close. Through every deploy, every 2am page, every ridiculous work call — she's been the one constant good thing. My Junior, my Princess, my favourite colleague by far."
-  }
+    eyebrow: "Chapter Five",
+    title: "Blessed & Grace-Full",
+    message:
+      "Your faith is quiet but it's the strongest thing about you. May this new year be full of God's grace, peace, and answered prayers. Numbers 6:24 — 'The Lord bless you and keep you.'",
+    image: img("faith.jpg", "ruth/faith.jpg"),
+    alt: "Church interior with lilies, candles and stained glass",
+  },
+  {
+    eyebrow: "Chapter Six",
+    title: "Mumbai ↔ Chennai",
+    message:
+      "Same company, different pipelines, 1,300 km apart. Two DevOps engineers debugging life over chat. Zero downtime friendship — no rollback needed.",
+    image: img("devops.jpg", "ruth/devops.jpg"),
+    alt: "Illustration of two engineers working from Mumbai and Chennai",
+  },
 ];
 
-/* ---------- BUILD CHAPTER SLIDES ---------- */
-const stage = document.getElementById('stage');
+const HERO = 1;
+const FIRST_CHAPTER = 2;
+const TOTAL = FIRST_CHAPTER + chapters.length + 1; // 9
 
-function garlandHTML(){
-  const petal = `<svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="3" fill="#FFFDF6"/><circle cx="4" cy="10" r="2.6" fill="#FFFDF6"/><circle cx="16" cy="10" r="2.6" fill="#FFFDF6"/><circle cx="10" cy="4" r="2.6" fill="#FFFDF6"/><circle cx="10" cy="16" r="2.6" fill="#FFFDF6"/><circle cx="10" cy="10" r="1.6" fill="#D4AF37"/></svg>`;
-  let s = "";
-  for(let i=0;i<14;i++) s += `<span>${petal}</span>`;
-  return s;
-}
-
-CHAPTERS.forEach((c, i) => {
-  const section = document.createElement('section');
-  section.className = 'slide chapter-slide' + (i % 2 === 0 ? ' tilt-left' : ' tilt-right');
-  section.dataset.index = i + 2;
-  section.style.background = `radial-gradient(circle at 12% 15%, rgba(${c.accent},0.14), transparent 45%), radial-gradient(circle at 88% 85%, rgba(${c.accent},0.12), transparent 40%), linear-gradient(180deg, var(--cream) 0%, var(--cream-2) 100%)`;
-  section.innerHTML = `
-    <div class="garland">${garlandHTML()}</div>
-    <div class="content">
-      <span class="tag reveal" style="color:rgb(${c.accent}); border-color:rgba(${c.accent},0.35); background:rgba(${c.accent},0.08);">${c.tag}</span>
-      <div class="frame polaroid reveal" data-img="${c.key}" style="--accent:rgb(${c.accent})">
-        <div class="fallback">${c.title}</div>
-        <span class="frame-badge" style="background:rgb(${c.accent})">${c.icon}</span>
+/* ---------- build chapter sections ---------- */
+const chaptersRoot = document.getElementById("chapters");
+chapters.forEach((c, i) => {
+  const s = document.createElement("section");
+  s.className = "scene";
+  s.id = "scene-chapter-" + i;
+  s.innerHTML = `
+    <div class="chapter-row${i % 2 ? " flip" : ""}">
+      <div class="chapter-img-wrap rise">
+        <span class="glow"></span>
+        <img class="chapter-img" src="${c.image}" alt="${c.alt}" loading="lazy" />
       </div>
-      <h2 class="subtitle chapter-headline reveal" style="color:rgb(${c.accent})">${c.title}</h2>
-      <div class="divider reveal" style="background:linear-gradient(90deg, var(--gold), rgb(${c.accent}))"></div>
-      <p class="message reveal">${c.message}</p>
+      <div class="chapter-card glass rise" style="animation-delay:.2s">
+        <p class="eyebrow rose">${c.eyebrow}</p>
+        <h2>${c.title}</h2>
+        <p>${c.message}</p>
+      </div>
     </div>`;
-  stage.appendChild(section);
+  chaptersRoot.appendChild(s);
 });
 
-/* ---------- FINAL SLIDE ---------- */
-const finalSection = document.createElement('section');
-finalSection.className = 'slide final-slide';
-finalSection.dataset.index = CHAPTERS.length + 2;
-finalSection.innerHTML = `
-  <div class="garland">${garlandHTML()}</div>
-  <div class="content">
-    <span class="tag reveal">deploy.status("birthday_wishes") // SUCCESS ✅</span>
-    <div class="frame reveal" data-img="wish"><div class="fallback">Ruth<br>Mariya S</div></div>
-    <h1 class="title reveal">Happy Birthday, Junior 💗</h1>
-    <div class="divider reveal"></div>
-    <p class="message reveal">Here's to more biryani debates, more beach evenings you deserve, more jasmine-scented good days, and many more years of being ridiculously easy to be friends with. Mumbai to Chennai, always rooting for you. Love, your favourite colleague.</p>
-    <div class="icon-row reveal">🌼 🍚 🌊 🎬 💻</div>
-  </div>`;
-stage.appendChild(finalSection);
+/* ---------- scene switching ---------- */
+const scenes = [
+  document.getElementById("scene-cake"),
+  document.getElementById("scene-hero"),
+  ...chapters.map((_, i) => document.getElementById("scene-chapter-" + i)),
+  document.getElementById("scene-finale"),
+];
 
-/* also add garlands to slides 0 and 1 dynamically for the flower motif */
-document.querySelectorAll('.garland').forEach(g=>{
-  if(!g.innerHTML) g.innerHTML = garlandHTML();
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+const dotsEl = document.getElementById("dots");
+
+for (let i = 1; i < TOTAL; i++) {
+  const d = document.createElement("span");
+  d.className = "dot";
+  dotsEl.appendChild(d);
+}
+
+let scene = 0;
+
+function replayAnimations(el) {
+  el.querySelectorAll(".rise").forEach((n) => {
+    n.style.animation = "none";
+    void n.offsetWidth;
+    n.style.animation = "";
+  });
+}
+
+function render() {
+  scenes.forEach((s, i) => s.classList.toggle("active", i === scene));
+  replayAnimations(scenes[scene]);
+  prevBtn.classList.toggle("show", scene > HERO);
+  nextBtn.classList.toggle("show", scene > 0 && scene < TOTAL - 1);
+  dotsEl.classList.toggle("show", scene > 0);
+  [...dotsEl.children].forEach((d, i) => d.classList.toggle("on", i + 1 === scene));
+  window.scrollTo({ top: 0 });
+}
+
+function go(n) {
+  scene = Math.max(scene === 0 ? 0 : HERO, Math.min(n, TOTAL - 1));
+  render();
+}
+
+nextBtn.addEventListener("click", () => go(scene + 1));
+prevBtn.addEventListener("click", () => go(scene - 1));
+document.addEventListener("keydown", (e) => {
+  if (scene === 0) return;
+  if (e.key === "ArrowRight") go(scene + 1);
+  if (e.key === "ArrowLeft") go(scene - 1);
+});
+document.getElementById("restartBtn").addEventListener("click", () => {
+  scene = 0;
+  blown = false;
+  resetCandles();
+  render();
 });
 
-/* ---------- LOAD IMAGES WITH FALLBACK ---------- */
-document.querySelectorAll('.frame, .hero-photo-frame').forEach(frame=>{
-  const key = frame.dataset.img;
-  const url = IMAGES[key];
-  if(url){
-    const img = document.createElement('img');
-    img.src = url;
-    img.alt = key;
-    img.onerror = () => { img.remove(); }; // fallback text stays visible
-    frame.insertBefore(img, frame.firstChild);
+/* ---------- petals ---------- */
+const petalsRoot = document.getElementById("petals");
+for (let i = 0; i < 18; i++) {
+  const p = document.createElement("span");
+  const size = 10 + Math.random() * 18;
+  p.className = "petal";
+  p.style.left = Math.random() * 100 + "%";
+  p.style.width = size + "px";
+  p.style.height = size + "px";
+  p.style.animationDelay = -Math.random() * 18 + "s";
+  p.style.animationDuration = 14 + Math.random() * 14 + "s";
+  p.style.setProperty("--drift", (Math.random() * 2 - 1) * 120 + "px");
+  p.style.setProperty("--spin", (Math.random() > 0.5 ? 540 : -540) + "deg");
+  petalsRoot.appendChild(p);
+}
+
+/* ---------- confetti ---------- */
+const confettiRoot = document.getElementById("confetti");
+const CONFETTI_COLORS = ["#e8629a", "#f083ac", "#e8c07d", "#fdf6e6", "#c03a72"];
+function burstConfetti() {
+  confettiRoot.innerHTML = "";
+  for (let i = 0; i < 90; i++) {
+    const b = document.createElement("span");
+    b.className = "confetti-bit";
+    b.style.left = Math.random() * 100 + "%";
+    b.style.width = 6 + Math.random() * 6 + "px";
+    b.style.height = 10 + Math.random() * 8 + "px";
+    b.style.background = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
+    b.style.animationDelay = Math.random() * 1.5 + "s";
+    b.style.animationDuration = 3 + Math.random() * 2.5 + "s";
+    confettiRoot.appendChild(b);
   }
-});
-
-/* ---------- NAVIGATION ---------- */
-const slides = () => Array.from(document.querySelectorAll('.slide'));
-let current = 0;
-
-function renderDots(){
-  const dots = document.getElementById('dots');
-  dots.innerHTML = '';
-  slides().forEach((s,i)=>{
-    const d = document.createElement('div');
-    d.className = 'dot' + (i===current ? ' active':'');
-    dots.appendChild(d);
-  });
+  setTimeout(() => (confettiRoot.innerHTML = ""), 7000);
 }
 
-function goTo(index){
-  const all = slides();
-  if(index < 0 || index >= all.length) return;
-  all.forEach((s,i)=>{
-    s.classList.remove('active','prev');
-    if(i === index) s.classList.add('active');
-    else if(i < index) s.classList.add('prev');
-  });
-  current = index;
-  renderDots();
-  document.getElementById('prevBtn').disabled = (current === 0);
-  document.getElementById('nextBtn').classList.remove('hint');
-  document.getElementById('nextBtn').disabled = false;
-  playReveal(all[index]);
-}
-
-/* staggered fade/rise-in for the active slide's key elements */
-function playReveal(slideEl){
-  const items = slideEl.querySelectorAll('.reveal');
-  items.forEach(el=>{
-    el.classList.remove('reveal-play');
-    void el.offsetWidth; /* restart animation */
-    el.classList.add('reveal-play');
-  });
-}
-
-document.getElementById('nextBtn').addEventListener('click', ()=> goTo(current+1));
-document.getElementById('prevBtn').addEventListener('click', ()=> goTo(current-1));
-
-/* keyboard + swipe */
-window.addEventListener('keydown', e=>{
-  if(e.key === 'ArrowRight') goTo(current+1);
-  if(e.key === 'ArrowLeft') goTo(current-1);
-});
-let touchX = null;
-stage.addEventListener('touchstart', e=> touchX = e.touches[0].clientX, {passive:true});
-stage.addEventListener('touchend', e=>{
-  if(touchX===null) return;
-  const dx = e.changedTouches[0].clientX - touchX;
-  if(Math.abs(dx) > 50){ dx < 0 ? goTo(current+1) : goTo(current-1); }
-  touchX = null;
-}, {passive:true});
-
-renderDots();
-document.getElementById('prevBtn').disabled = true;
-playReveal(slides()[0]);
-
-/* ---------- CANDLE BLOW LOGIC ---------- */
-const flame = document.getElementById('flame');
-const blowBtn = document.getElementById('blowBtn');
-const wishMade = document.getElementById('wishMade');
+/* ---------- cake / candles ---------- */
+const cakeBtn = document.getElementById("cakeBtn");
+const flamesEl = document.getElementById("flames");
+const hintEl = document.getElementById("cakeHint");
 let blown = false;
 
-function extinguish(){
-  if(blown) return;
+function resetCandles() {
+  [...flamesEl.children].forEach((holder) => {
+    holder.innerHTML = '<i class="flame"></i>';
+  });
+  hintEl.textContent = "Make a wish, Princess — tap the cake to blow out the candles.";
+  cakeBtn.querySelector(".ring").style.display = "";
+  listenForBlow();
+}
+
+function blowOut() {
+  if (blown) return;
   blown = true;
-  flame.classList.add('out');
-  wishMade.classList.add('show');
-  blowBtn.style.display = 'none';
-  launchConfetti();
-  setTimeout(()=> goTo(1), 1900);
+  [...flamesEl.children].forEach((holder, i) => {
+    holder.innerHTML = '<i class="smoke" style="animation-delay:' + i * 0.1 + 's"></i>';
+  });
+  cakeBtn.querySelector(".ring").style.display = "none";
+  hintEl.textContent = "Wish locked in. Don't tell anyone what it was ✨";
+  stopMic();
+  setTimeout(() => {
+    burstConfetti();
+    go(HERO);
+  }, 2200);
 }
 
-blowBtn.addEventListener('click', extinguish);
+cakeBtn.addEventListener("click", blowOut);
 
-/* optional real microphone blow-detection (best effort, silently ignored if blocked) */
-(async function initMic(){
-  try{
-    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const src = ctx.createMediaStreamSource(stream);
-    const analyser = ctx.createAnalyser();
+/* real breath detection via microphone (optional, needs permission) */
+let micCtx, micStream, micRaf;
+function stopMic() {
+  cancelAnimationFrame(micRaf);
+  if (micStream) micStream.getTracks().forEach((t) => t.stop());
+  if (micCtx) micCtx.close();
+  micCtx = micStream = undefined;
+}
+
+async function listenForBlow() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    micCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const analyser = micCtx.createAnalyser();
     analyser.fftSize = 512;
-    src.connect(analyser);
+    micCtx.createMediaStreamSource(micStream).connect(analyser);
     const data = new Uint8Array(analyser.frequencyBinCount);
-    (function check(){
-      if(blown){ stream.getTracks().forEach(t=>t.stop()); return; }
-      analyser.getByteFrequencyData(data);
-      const avg = data.reduce((a,b)=>a+b,0)/data.length;
-      if(avg > 55) extinguish();
-      requestAnimationFrame(check);
-    })();
-  }catch(err){ /* mic unavailable or denied — button still works */ }
-})();
-
-/* ---------- CONFETTI ---------- */
-const canvas = document.getElementById('confetti');
-const ctx2d = canvas.getContext('2d');
-function resizeCanvas(){ canvas.width = innerWidth; canvas.height = innerHeight; }
-resizeCanvas();
-window.addEventListener('resize', resizeCanvas);
-
-function launchConfetti(strength = 1){
-  const colors = ['#D6336C','#D4AF37','#FF8A65','#FFFDF6','#0E7C86'];
-  const shapes = ['rect','circle','ribbon'];
-  const count = Math.round(130 * strength);
-  const pieces = Array.from({length:count}, ()=>({
-    x: canvas.width/2 + (Math.random()-0.5)*100,
-    y: canvas.height*0.42,
-    vx: (Math.random()-0.5)*9.5,
-    vy: Math.random()*-9.5 - 3,
-    size: Math.random()*6+4,
-    color: colors[Math.floor(Math.random()*colors.length)],
-    shape: shapes[Math.floor(Math.random()*shapes.length)],
-    rot: Math.random()*360,
-    vr: (Math.random()-0.5)*14,
-    life: 0
-  }));
-  function frame(){
-    ctx2d.clearRect(0,0,canvas.width,canvas.height);
-    let alive = false;
-    pieces.forEach(p=>{
-      if(p.life > 150) return;
-      alive = true;
-      p.vy += 0.27;
-      p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.life++;
-      ctx2d.save();
-      ctx2d.translate(p.x,p.y);
-      ctx2d.rotate(p.rot*Math.PI/180);
-      ctx2d.fillStyle = p.color;
-      if(p.shape === 'circle'){
-        ctx2d.beginPath();
-        ctx2d.arc(0,0,p.size/2,0,Math.PI*2);
-        ctx2d.fill();
-      } else if(p.shape === 'ribbon'){
-        ctx2d.fillRect(-p.size*0.18, -p.size*1.1, p.size*0.36, p.size*2.2);
-      } else {
-        ctx2d.fillRect(-p.size/2,-p.size/2,p.size,p.size*0.6);
-      }
-      ctx2d.restore();
-    });
-    if(alive) requestAnimationFrame(frame);
-    else ctx2d.clearRect(0,0,canvas.width,canvas.height);
+    hintEl.textContent = "Close your eyes, make a wish… then blow into your mic 🎂";
+    const tick = () => {
+      analyser.getByteTimeDomainData(data);
+      let sum = 0;
+      for (const v of data) sum += (v - 128) ** 2;
+      if (Math.sqrt(sum / data.length) > 26) blowOut();
+      else micRaf = requestAnimationFrame(tick);
+    };
+    tick();
+  } catch (e) {
+    /* no mic permission — tapping the cake still works */
   }
-  frame();
 }
+
+listenForBlow();
+render();
