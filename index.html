@@ -19,8 +19,33 @@
   <div id="confetti" class="confetti" aria-hidden="true"></div>
 
   <main>
-    <!-- Scene 0: cake -->
-    <section class="scene active" id="scene-cake">
+    <!-- Scene 0: gift intro -->
+    <section class="scene gift-scene active" id="scene-gift">
+      <div class="sparks" id="sparks" aria-hidden="true"></div>
+      <svg class="gift-title-curve rise" style="animation-delay:.1s" viewBox="0 0 640 190" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" role="img" aria-label="I have made something for you">
+        <defs>
+          <path id="giftCurve" d="M 20 170 Q 320 -10 620 170" fill="none" />
+          <linearGradient id="giftGoldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#e8c07d" />
+            <stop offset="100%" stop-color="#fdf6e6" />
+          </linearGradient>
+        </defs>
+        <text font-family="'Playfair Display', serif" font-style="italic" font-weight="600" font-size="30" fill="url(#giftGoldGrad)">
+          <textPath href="#giftCurve" xlink:href="#giftCurve" startOffset="50%" text-anchor="middle">✨ I have made something for you ✨</textPath>
+        </text>
+      </svg>
+
+      <button class="gift-btn rise" id="giftBtn" aria-label="Open your gift" style="animation-delay:.25s">
+        <div class="gift-box-float float">
+          <img class="gift-box-img" src="images/gift.gif" alt="Animated pink gift box opening" />
+        </div>
+      </button>
+
+      <p class="hint gold-hint rise" style="animation-delay:.4s">Tap to open your gift ✨</p>
+    </section>
+
+    <!-- Scene 1: cake -->
+    <section class="scene" id="scene-cake">
       <p class="script rose">Happy Birthday</p>
       <h1 class="heading">Ruth Mariya S</h1>
 

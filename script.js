@@ -62,9 +62,11 @@ const chapters = [
   },
 ];
 
-const HERO = 1;
-const FIRST_CHAPTER = 2;
-const TOTAL = FIRST_CHAPTER + chapters.length + 1; // 9
+const GIFT = 0;
+const CAKE = 1;
+const HERO = 2;
+const FIRST_CHAPTER = 3;
+const TOTAL = FIRST_CHAPTER + chapters.length + 1; // 10
 
 /* ---------- build chapter sections ---------- */
 const chaptersRoot = document.getElementById("chapters");
@@ -89,6 +91,7 @@ chapters.forEach((c, i) => {
 
 /* ---------- scene switching ---------- */
 const scenes = [
+  document.getElementById("scene-gift"),
   document.getElementById("scene-cake"),
   document.getElementById("scene-hero"),
   ...chapters.map((_, i) => document.getElementById("scene-chapter-" + i)),
@@ -99,7 +102,7 @@ const prevBtn = document.getElementById("prevBtn");
 const nextBtn = document.getElementById("nextBtn");
 const dotsEl = document.getElementById("dots");
 
-for (let i = 1; i < TOTAL; i++) {
+for (let i = HERO; i < TOTAL; i++) {
   const d = document.createElement("span");
   d.className = "dot";
   dotsEl.appendChild(d);
@@ -118,31 +121,89 @@ function replayAnimations(el) {
 function render() {
   scenes.forEach((s, i) => s.classList.toggle("active", i === scene));
   replayAnimations(scenes[scene]);
+  petalsRoot.style.display = scene === GIFT ? "none" : "";
   prevBtn.classList.toggle("show", scene > HERO);
-  nextBtn.classList.toggle("show", scene > 0 && scene < TOTAL - 1);
-  dotsEl.classList.toggle("show", scene > 0);
-  [...dotsEl.children].forEach((d, i) => d.classList.toggle("on", i + 1 === scene));
+  nextBtn.classList.toggle("show", scene >= HERO && scene < TOTAL - 1);
+  dotsEl.classList.toggle("show", scene >= HERO);
+  [...dotsEl.children].forEach((d, i) => d.classList.toggle("on", i + HERO === scene));
   window.scrollTo({ top: 0 });
 }
 
 function go(n) {
-  scene = Math.max(scene === 0 ? 0 : HERO, Math.min(n, TOTAL - 1));
+  scene = Math.max(scene < HERO ? 0 : HERO, Math.min(n, TOTAL - 1));
   render();
 }
 
 nextBtn.addEventListener("click", () => go(scene + 1));
 prevBtn.addEventListener("click", () => go(scene - 1));
 document.addEventListener("keydown", (e) => {
-  if (scene === 0) return;
+  if (scene < HERO) return;
   if (e.key === "ArrowRight") go(scene + 1);
   if (e.key === "ArrowLeft") go(scene - 1);
 });
 document.getElementById("restartBtn").addEventListener("click", () => {
-  scene = 0;
+  scene = GIFT;
   blown = false;
+  giftOpened = false;
+  giftBtn.classList.remove("opened");
   resetCandles();
   render();
 });
+
+/* ---------- rising gift sparks ---------- */
+const sparksRoot = document.getElementById("sparks");
+for (let i = 0; i < 34; i++) {
+  const sp = document.createElement("span");
+  const big = i % 4 === 0;
+  const size = big ? 8 + Math.random() * 6 : 3 + Math.random() * 3;
+  sp.className = big ? "spark spark-lg" : "spark";
+  sp.style.left = Math.random() * 100 + "%";
+  sp.style.width = size + "px";
+  sp.style.height = size + "px";
+  sp.style.animationDelay = -Math.random() * 22 + "s, " + -Math.random() * 3 + "s";
+  sp.style.animationDuration = (18 + Math.random() * 10) + "s, " + (2 + Math.random() * 2) + "s";
+  sp.style.setProperty("--drift", (Math.random() * 2 - 1) * 50 + "px");
+  sparksRoot.appendChild(sp);
+}
+
+/* ---------- gift box ---------- */
+const giftBtn = document.getElementById("giftBtn");
+let giftOpened = false;
+
+function quadrantWipe(sourceEl) {
+  const overlay = document.createElement("div");
+  overlay.className = "quad-wipe";
+  const quads = [
+    { clip: "polygon(0 0, 50% 0, 50% 50%, 0 50%)", tx: "-100%", ty: "-100%" },
+    { clip: "polygon(50% 0, 100% 0, 100% 50%, 50% 50%)", tx: "100%", ty: "-100%" },
+    { clip: "polygon(0 50%, 50% 50%, 50% 100%, 0 100%)", tx: "-100%", ty: "100%" },
+    { clip: "polygon(50% 50%, 100% 50%, 100% 100%, 50% 100%)", tx: "100%", ty: "100%" },
+  ];
+  quads.forEach((q) => {
+    const panel = sourceEl.cloneNode(true);
+    panel.removeAttribute("id");
+    panel.querySelectorAll("[id]").forEach((n) => n.removeAttribute("id"));
+    panel.classList.add("quad-panel");
+    panel.style.clipPath = q.clip;
+    panel.style.setProperty("--tx", q.tx);
+    panel.style.setProperty("--ty", q.ty);
+    overlay.appendChild(panel);
+  });
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.add("go")));
+  setTimeout(() => overlay.remove(), 2350);
+}
+
+function openGift() {
+  if (giftOpened) return;
+  giftOpened = true;
+  giftBtn.classList.add("opened");
+  setTimeout(() => {
+    quadrantWipe(scenes[GIFT]);
+    go(CAKE);
+  }, 650);
+}
+giftBtn.addEventListener("click", openGift);
 
 /* ---------- petals ---------- */
 const petalsRoot = document.getElementById("petals");
@@ -162,7 +223,7 @@ for (let i = 0; i < 18; i++) {
 
 /* ---------- confetti ---------- */
 const confettiRoot = document.getElementById("confetti");
-const CONFETTI_COLORS = ["#e8629a", "#f083ac", "#e8c07d", "#fdf6e6", "#c03a72"];
+const CONFETTI_COLORS = ["#e8629a", "#c94f8f", "#e8c07d", "#fdf6e6", "#8a1743"];
 function burstConfetti() {
   confettiRoot.innerHTML = "";
   for (let i = 0; i < 90; i++) {
